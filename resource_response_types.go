@@ -14,6 +14,11 @@ type ListResourcesResponse struct {
 	NextCursor *string `json:"nextCursor,omitempty" yaml:"nextCursor,omitempty" mapstructure:"nextCursor,omitempty"`
 }
 
+type ListResourcesResponseTemplates struct {
+	Resources  []*ResourceSchema `json:"resources" yaml:"resources" mapstructure:"resources"`
+	NextCursor *string           `json:"nextCursor,omitempty" yaml:"nextCursor,omitempty" mapstructure:"nextCursor,omitempty"`
+}
+
 // A known resource that the server is capable of reading.
 type ResourceSchema struct {
 	// Annotations corresponds to the JSON schema field "annotations".

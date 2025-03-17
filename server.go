@@ -553,6 +553,7 @@ func (s *Server) Serve() error {
 	pr.SetRequestHandler("prompts/list", s.handleListPrompts)
 	pr.SetRequestHandler("prompts/get", s.handlePromptCalls)
 	pr.SetRequestHandler("resources/list", s.handleListResources)
+	pr.SetRequestHandler("resources/templates/list", s.handleListResourcesTemplates)
 	pr.SetRequestHandler("resources/read", s.handleResourceCalls)
 	err := pr.Connect(s.transport)
 	if err != nil {
@@ -824,6 +825,15 @@ func (s *Server) handleListResources(ctx context.Context, request *transport.Bas
 				toString := base64.StdEncoding.EncodeToString([]byte(resourcesToReturn[len(resourcesToReturn)-1].Uri))
 				return &toString
 			}
+			return nil
+		}(),
+	}, nil
+}
+
+func (s *Server) handleListResourcesTemplates(ctx context.Context, request *transport.BaseJSONRPCRequest, extra protocol.RequestHandlerExtra) (transport.JsonRpcBody, error) {
+	return ListResourcesResponseTemplates{
+		Resources: make([]*ResourceSchema, 0),
+		NextCursor: func() *string {
 			return nil
 		}(),
 	}, nil
