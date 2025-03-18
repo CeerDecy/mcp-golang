@@ -193,6 +193,24 @@ func (s *Server) RegisterTool(name string, description string, handler any) erro
 	return s.sendToolListChangedNotification()
 }
 
+// RegisterTool registers a new tool with the server
+func (s *Server) RegisterToolWithSchema(name string, description string, inputSchema *jsonschema.Schema, handler any) error {
+	err := validateToolHandler(handler)
+	if err != nil {
+		return err
+	}
+	//inputSchema := createJsonSchemaFromHandler(handler)
+
+	s.tools.Store(name, &tool{
+		Name:            name,
+		Description:     description,
+		Handler:         createWrappedToolHandler(handler),
+		ToolInputSchema: inputSchema,
+	})
+
+	return s.sendToolListChangedNotification()
+}
+
 func (s *Server) sendToolListChangedNotification() error {
 	if !s.isRunning {
 		return nil
