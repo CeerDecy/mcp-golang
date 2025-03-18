@@ -9,12 +9,26 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ClientOptions func(client *Client)
+
+type ClientInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
+func WithClientInfoOptions(info ClientInfo) ClientOptions {
+	return func(client *Client) {
+		client.info = info
+	}
+}
+
 // Client represents an MCP client that can connect to and interact with MCP servers
 type Client struct {
 	transport    transport.Transport
 	protocol     *protocol.Protocol
 	capabilities *ServerCapabilities
 	initialized  bool
+	info         ClientInfo
 }
 
 // NewClient creates a new MCP client with the specified transport
@@ -22,7 +36,17 @@ func NewClient(transport transport.Transport) *Client {
 	return &Client{
 		transport: transport,
 		protocol:  protocol.NewProtocol(nil),
+		info:      ClientInfo{},
 	}
+}
+
+// NewClientWithOptions creates a new MCP client with the specified transport
+func NewClientWithOptions(transport transport.Transport, options ...ClientOptions) *Client {
+	client := NewClient(transport)
+	for _, f := range options {
+		f(client)
+	}
+	return client
 }
 
 // Initialize connects to the server and retrieves its capabilities
@@ -37,7 +61,11 @@ func (c *Client) Initialize(ctx context.Context) (*InitializeResponse, error) {
 	}
 
 	// Make initialize request to server
-	response, err := c.protocol.Request(ctx, "initialize", map[string]interface{}{}, nil)
+	response, err := c.protocol.Request(ctx, "initialize", map[string]interface{}{
+		"protocolVersion": "2.0",
+		"capabilities":    map[string]interface{}{},
+		"clientInfo":      c.info,
+	}, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize")
 	}
